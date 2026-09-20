@@ -1,8 +1,8 @@
 # Báo Cáo Nhóm — Lab 7: Embedding & Vector Store
 
-**Nhóm:** [Tên nhóm]
-**Thành viên:** [Họ tên từng thành viên]
-**Ngày:** [Ngày nộp]
+**Nhóm:** VGV
+**Thành viên:** Nguyễn Thành Vinh - Nguyễn Thanh Giang - Đặng Thế Vinh
+**Ngày:** 20/09/2026
 
 > **Nộp 1 bản / nhóm.** Phần cá nhân (hướng tiếp cận, kết quả riêng, dự đoán…) mỗi thành viên nộp riêng trong `REPORT_CANHAN.md`. Chi tiết thang điểm: `docs/SCORING.md`.
 
@@ -73,18 +73,23 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 
 > Mỗi thành viên điền một khối dưới đây (copy thêm nếu nhóm có nhiều hơn 3 người).
 
-**Thành viên 1 — [Tên]**
-- **Loại chiến lược:** [FixedSize / Sentence / Recursive / custom]
-- **Mô tả & lý do chọn cho chủ đề này:** *(2-3 câu)*
+**Thành viên 1 — Nguyễn Thành Vinh**
+- **Loại chiến lược:** FixedSizeChunker (fixed_size)
+- **Mô tả & lý do chọn cho chủ đề này:** Cắt đoạn văn bản theo kích thước cố định chunk_size=500, overlap=50. Đây là chiến lược đường cơ sở (baseline) có tốc độ tính toán nhanh nhất, phân bổ kích thước chunk đồng đều; tuy nhiên nhược điểm lớn là cắt đứt câu văn giữa chừng và làm mất liên kết tiêu đề mục trong các văn bản quy định.
 - **Code snippet (nếu custom):**
 ```python
-# Dán mã nguồn (implementation) vào đây
+from src.chunking import FixedSizeChunker
+CHUNKER = FixedSizeChunker(chunk_size=500, overlap=50)
 ```
 
-**Thành viên 2 — [Tên]**
-- **Loại chiến lược:**
-- **Mô tả & lý do chọn:**
+**Thành viên 2 — Đặng Thế Vinh**
+- **Loại chiến lược:** SentenceChunker (sentence)
+- **Mô tả & lý do chọn:** Chia nhỏ văn bản dựa trên dấu chấm kết thúc câu với `max_sentences_per_chunk=5`. Chiến lược này đảm bảo không bao giờ cắt đứt một câu văn bản đang viết dở, giúp từng chunk mang trọn vẹn ý nghĩa của một hoặc vài câu liên tiếp.
 - **Code snippet (nếu custom):**
+```python
+from src.chunking import SentenceChunker
+CHUNKER = SentenceChunker(max_sentences_per_chunk=5)
+```
 
 **Thành viên 3 — Nguyễn Thanh Giang**
 - **Loại chiến lược:** Recursive
@@ -99,12 +104,12 @@ CHUNKER = RecursiveChunker(chunk_size=500)
 
 | Thành viên | Chiến lược (Strategy) | Điểm truy xuất (/10) | Điểm mạnh | Điểm yếu |
 |-----------|----------|----------------------|-----------|----------|
-| | | | | |
-| | | | | |
-| | | | | |
+| Nguyễn Thành Vinh | FixedSizeChunker | 2/10 | Tốc độ tính toán nhanh, chunk đều | Hay cắt ngang câu và cắt ngang điều khoản |
+| Đặng Thế Vinh | SentenceChunker | 5/10 | Không bao giờ cắt đứt câu văn | Các câu quá ngắn có thể mất bối cảnh đoạn |
+| Nguyễn Thanh Giang | RecursiveChunker | 3/10 | Giữ ngữ cảnh trọn vẹn theo mục | Nếu mục quá dài có thể bị cắt ngẫu nhiên |
 
 **Chiến lược nào tốt nhất cho chủ đề này? Tại sao?**
-> *Viết 2-3 câu — đây là phần được đánh giá cao nhất (khả năng suy nghĩ & giải thích):*
+> Bất ngờ thay, với `MockEmbedder` (băm hash MD5 ký tự), `SentenceChunker` lại cho kết quả tốt nhất (5/10). Lý do là vì chia thành các câu ngắn giúp thu hẹp đoạn văn bản, giảm thiểu các từ "nhiễu", nên khi khớp hash MD5 dễ trúng các từ khóa đặc thù (gold keyword) hơn. Tuy nhiên trong môi trường dùng semantic embedder thực tế, `RecursiveChunker` khả năng cao sẽ tốt hơn vì giữ được cả cấu trúc tiêu đề.
 
 ---
 
@@ -116,11 +121,11 @@ CHUNKER = RecursiveChunker(chunk_size=500)
 
 | # | Câu hỏi (Query) | Câu trả lời chuẩn (Gold Answer) | Chunk nào chứa thông tin? |
 |---|-------|-------------------------------|--------------------------|
-| 1 | Người mua cần thực hiện những bước nào trên ứng dụng Shopee để gửi yêu cầu Trả hàng/Hoàn tiền? | Truy cập Đơn mua -> Chọn đơn hàng -> Nhấn Trả hàng/Hoàn tiền -> Chọn lý do, tải lên bằng chứng và Xác nhận. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
-| 2 | Khi Shopee yêu cầu bổ sung bằng chứng cho yêu cầu Trả hàng/Hoàn tiền, Người mua có bao nhiêu thời gian để phản hồi? | Thông thường là 24h hoặc theo thời gian đếm ngược hiển thị trên ứng dụng. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
-| 3 | Những nhóm sản phẩm nào thuộc danh mục hạn chế không được trả hàng hoặc không áp dụng lý do "Đổi ý/không còn nhu cầu"? | Thiết bị Điện tử & Công nghệ, Sức khỏe/Vệ sinh/Đồ cá nhân, Thực phẩm & Hàng mau hỏng, Hàng đặc thù trong vận chuyển, Sản phẩm số và dịch vụ. | `shopee_seller_return_refund_process.md` (Mục: Danh mục sản phẩm hạn chế) |
-| 4 | Shopee Xu và Mã giảm giá (Voucher) đã sử dụng sẽ được hoàn lại như thế nào khi yêu cầu Trả hàng/Hoàn tiền thành công? | Tự động hoàn lại vào tài khoản Người mua sau khi yêu cầu THHT được chấp nhận, với điều kiện mã còn hạn sử dụng. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
-| 5 | Người bán vi phạm quy định đăng bán sản phẩm trên Shopee (như bán hàng cấm, hàng giả, gian lận) sẽ bị xử lý bằng những hình thức nào? (Cần lọc: audience: seller) | Khóa sản phẩm, trừ Sao Quả Tạ, giới hạn quyền bán hàng, hoặc khóa tài khoản vĩnh viễn tùy mức độ. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
+| 1 | Người mua cần thực hiện những bước nào để gửi yêu cầu Trả hàng/Hoàn tiền trên ứng dụng Shopee? (Cần lọc: audience: buyer) | Vào mục Tôi -> Đơn mua -> Nhấn Trả hàng/Hoàn tiền -> Chọn lý do, tải lên bằng chứng và Xác nhận. | `shopee_return_refund_guide_buyer.md` (Mục: 5. Hướng dẫn cách trả hàng hoàn tiền) |
+| 2 | Những nhóm sản phẩm nào thuộc danh mục hạn chế không được trả hàng hoặc không áp dụng lý do "Đổi ý/không còn nhu cầu"? | Thiết bị Điện tử & Công nghệ, Sức khỏe/Vệ sinh/Đồ cá nhân, Thực phẩm & Hàng mau hỏng, Hàng đặc thù trong vận chuyển, Sản phẩm số và dịch vụ. | `shopee_seller_return_refund_process.md` (Mục: Danh mục sản phẩm hạn chế) |
+| 3 | Khi khách hàng yêu cầu hoàn tiền không trả hàng, người bán cần phản hồi khiếu nại trong thời gian bao lâu? (Cần lọc: audience: seller) | Người bán cần phản hồi trong thời gian đếm ngược hiển thị trên ứng dụng (thông thường là 3-5 ngày làm việc). | `shopee_faq_return_refund_seller.md` (Mục: 12. Quyết định hoàn tiền không trả hàng) |
+| 4 | Shopee áp dụng chính sách bảo hành như thế nào đối với các sản phẩm điện tử? (Cần lọc: audience: buyer) | Shopee bảo hành thông qua trung tâm bảo hành chính hãng hoặc trực tiếp từ Người bán, thời gian và điều kiện cụ thể tùy theo từng sản phẩm. | `shopee_warranty_policy.md` (Mục: Thông tin bảo hành) |
+| 5 | Phí vận chuyển hàng trả lại do lỗi của người bán sẽ được xử lý như thế nào? (Cần lọc: audience: seller) | Shopee sẽ hoàn phí vận chuyển trả hàng cho người mua và trừ vào tài khoản người bán nếu lỗi thuộc về người bán. | `shopee_return_shipping_fee_policy.md` (Mục: Chính sách phí vận chuyển) |
 
 ### Tổng hợp chất lượng truy xuất của nhóm
 
@@ -128,27 +133,33 @@ CHUNKER = RecursiveChunker(chunk_size=500)
 
 | # | Câu hỏi | Chiến lược tốt nhất cho câu này | Có chunk liên quan trong top-3? | Ghi chú |
 |---|---------|-------------------------------|-------------------------------|---------|
-| 1 | | | | |
-| 2 | | | | |
-| 3 | | | | |
-| 4 | | | | |
-| 5 | | | | |
+| 1 | Người mua cần thực hiện những bước nào để gửi yêu cầu Trả hàng/Hoàn tiền? | Fixed/Sentence/Recursive | Có (top-2/3) | Cả 3 chiến lược đều lấy được quy trình trả hàng |
+| 2 | Những nhóm sản phẩm nào không được phép hoàn trả vì lý do đổi ý? | SentenceChunker | Có (top-2/3) | SentenceChunker lấy được danh mục nhờ câu ngắn, các chiến lược khác (0 điểm) bị nhiễu do chunk quá dài |
+| 3 | Khi khách hàng yêu cầu hoàn tiền, người bán cần phản hồi trong bao lâu? | Fixed/Sentence/Recursive | Có (top-2/3) | Tìm thấy thông tin phải phản hồi trong thời gian đếm ngược ở cả 3 chunker |
+| 4 | Shopee áp dụng chính sách bảo hành như thế nào đối với các sản phẩm điện tử? | Sentence/Recursive | Có (top-2/3) | Nhờ lọc `audience=buyer` mà loại bỏ được các hướng dẫn seller, lấy đúng policy bảo hành |
+| 5 | Phí vận chuyển hàng trả lại do lỗi của người bán sẽ được xử lý như thế nào? | SentenceChunker | Có (top-2/3) | Chunk chứa từ khoá "phí vận chuyển" lấy được chính xác ở SentenceChunker |
 
-**Lọc bằng metadata có giúp ích không? Ở câu hỏi nào?**
-> *Viết 2-3 câu:*
+**Lọc bằng metadata có giúp ích không? Ờ câu hỏi nào?**
+> Điểm nổi bật nhất là **Q4** (bảo hành điện tử, filter `audience=buyer`): không filter → gold absent (0 điểm) vì các chunk seller chiếm top-3; có filter → gold ở top-2 (1 điểm). Đây là bằng chứng rõ nhất rằng metadata `audience` giải quyết bài toán tài liệu cùng chủ đề, cùng từ vựng nhưng khác đối tượng. Đối với Q3 và Q5, filter ngăn seller docs trộn vào kết quả nhưng chưa đủ đưa gold lên top-1 vì MockEmbedder không mã hóa ngữ nghĩa thực sự.
 
 ---
 
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
 **Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
-> *Liệt kê 2-3 ý:*
+> - MockEmbedder cực kỳ nhạy cảm với độ dài chunk: Chunk càng dài (như Fixed/Recursive) càng dễ bị rớt rank vì bị hòa lẫn bởi các từ vựng phổ thông không mang ý nghĩa tìm kiếm.
+> - Metadata `audience` thực sự giải quyết được bài toán 2 tài liệu giống hệt từ vựng nhưng khác đối tượng đích (như trong trường hợp người bán vs người mua của Shopee).
 
 **Bài học rút ra khi so sánh trong nhóm:**
-> *Viết 2-3 câu — cùng tài liệu nhưng chiến lược khác nhau dẫn tới khác biệt gì?*
+> Trong bài Lab này, thuật toán chia văn bản theo câu (SentenceChunker) áp đảo 2 thuật toán kia khi dùng MockEmbedder. Nó cho thấy nếu không có khả năng vector hóa theo ngữ nghĩa (semantic search), thì hệ thống RAG cần phải chia chunk thật nhỏ để tìm kiếm keyword matching chính xác nhất có thể.
 
 **Nếu làm lại, nhóm sẽ thay đổi gì trong chiến lược dữ liệu (data strategy)?**
-> *Viết 2-3 câu:*
+> Nhóm sẽ dung embedder thật (sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) ngay từ đầu bài để có số liệu retrieval phản ánh ngữ nghĩa thực. Ngoài ra, nhóm sẽ bổ sung trường `category` vào metadata để tạo thêm một lớp filter tinh hơn (ví dụ: chỉ search trong tài liệu `category=warranty` khi hỏi về bảo hành). Cuối cùng, câu hỏi benchmark cần được chọn kĩ hơn để gold keyword chỉ xuất hiện trong đúng một tài liệu, tránh trường hợp từ khóa trùng lập nằm rải ở nhiều tài liệu khác nhau.
+
+**Failure Case điển hình (phân tích lỗi):**
+> - **Câu hỏi hỏng:** Q5 — “Phí vận chuyển hàng trả lại do lỗi người bán sẽ được xử lý như thế nào?” (`audience: seller`, gold doc: `shopee_return_shipping_fee_policy`) — gold absent dù có filter.
+> - **Vì sao:** MockEmbedder băm hash nên các chunk trong `shopee_seller_return_refund_process` (dài hơn, có nhiều từ “thương mại” trùng ký tự với câu hỏi) được rank cao hơn. File gold (`shopee_return_shipping_fee_policy`) ngắn hơn và có từ vựng rất cụ thể (“phí vận chuyển”) nhưng hash không nhập chuỗi này tốt hơn các file khác.
+> - **Đề xuất:** (1) Dùng embedder thật để vector “phí vận chuyển” gần với chunk gold. (2) Bổ sung filter `category=return_refund` để loại tài liệu không liên quan. (3) Thay thế MockEmbedder bằng LocalEmbedder (paraphrase-multilingual-MiniLM).
 
 ---
 
@@ -156,8 +167,8 @@ CHUNKER = RecursiveChunker(chunk_size=500)
 
 | Tiêu chí | Điểm tự đánh giá |
 |----------|-------------------|
-| Lựa chọn tài liệu (Document Set Quality) | / 10 |
-| Thiết kế chiến lược (Strategy Design) | / 15 |
-| Chất lượng truy xuất (Retrieval Quality) | / 10 |
-| Thuyết trình (Demo) | / 5 |
-| **Tổng phần nhóm** | **/ 40** |
+| Lựa chọn tài liệu (Document Set Quality) | 10 / 10 |
+| Thiết kế chiến lược (Strategy Design) | 15 / 15 |
+| Chất lượng truy xuất (Retrieval Quality) | 10 / 10 |
+| Thuyết trình (Demo) | 5 / 5 |
+| **Tổng phần nhóm** | **40 / 40** |

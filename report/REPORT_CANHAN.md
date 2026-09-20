@@ -94,14 +94,14 @@ tests/test_solution.py::TestEmbeddingStoreDeleteDocument::test_delete_returns_tr
 
 | Cặp | Câu A | Câu B | Dự đoán | Điểm thực tế | Đúng? |
 |------|-----------|-----------|---------|--------------|-------|
-| 1 | | | cao / thấp | | |
-| 2 | | | cao / thấp | | |
-| 3 | | | cao / thấp | | |
-| 4 | | | cao / thấp | | |
-| 5 | | | cao / thấp | | |
+| 1 | Quy trình trả hàng hoàn tiền trên Shopee? | Làm sao để hoàn trả sản phẩm và lấy lại tiền? | cao | 0.045 | Sai |
+| 2 | Người bán phản hồi trong 24 giờ. | Người bán phản hồi trong 24 giờ. | cao | 1.000 | Đúng |
+| 3 | Chính sách bảo hành điện tử. | Quy định đổi trả hàng công nghệ. | cao | 0.082 | Sai |
+| 4 | Shopee Xu sẽ được hoàn lại vào ví. | Mã giảm giá sẽ được hoàn lại vào ví. | cao | 0.420 | Sai (Trung bình) |
+| 5 | Apple ra mắt điện thoại mới. | Giá thịt lợn hôm nay giảm mạnh. | thấp | -0.055 | Đúng |
 
 **Kết quả nào bất ngờ nhất? Điều này nói gì về cách embeddings biểu diễn ý nghĩa?**
-> *Viết 2-3 câu:*
+> Bất ngờ nhất là các cặp 1 và 3 mang ý nghĩa hoàn toàn giống nhau nhưng điểm thực tế lại rất thấp (gần 0). Lý do là vì hiện tại lab đang dùng `MockEmbedder` (băm hash MD5 ký tự), nó chỉ đo độ trùng lặp từ vựng chứ không hề hiểu ngữ nghĩa. Nếu dùng embedder thật (như `sentence-transformers`), các cặp 1 và 3 chắc chắn sẽ có điểm cao vì các vector sẽ biểu diễn đúng ý nghĩa tiềm ẩn của câu bất chấp việc dùng từ đồng nghĩa.
 
 ---
 
@@ -109,15 +109,19 @@ tests/test_solution.py::TestEmbeddingStoreDeleteDocument::test_delete_returns_tr
 
 Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân của bạn trong gói `src`. **5 câu hỏi này phải trùng với các thành viên cùng nhóm** (xem `REPORT_NHOM.md`).
 
-| # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
-|---|-------|--------------------------------|-------|-----------|------------------------|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+> **Lưu ý:** Đang sử dụng MockEmbedder (hash MD5 không mã hóa ngữ nghĩa). Score phản ánh sự giống nhau về chuỗi ký tự, không phản ánh độ tương tự ngữ nghĩa thực sự.
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** __ / 5
+| # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan? (Relevant) | Câu trả lời Agent (tóm tắt) |
+|---|-------|--------------------------------|-------|-----------|------------------------|
+| 1 | Người mua trả hàng/hoàn tiền các bước? | shopee_return_refund_guide_buyer — mục 7 theo dõi tình trạng | 0.349 | Có (top-2/3 có Gold) | Theo dõi đơn mua, chọn Trả hàng/Hoàn tiền |
+| 2 | Sản phẩm nào không được hoàn trả vì đổi ý? | shopee_faq_return_refund_seller — trách nhiệm hoàn tiền | 0.373 | Không (gold absent) | Không trả lời được chính xác |
+| 3 | Người bán phản hồi trong bao lâu? | shopee_seller_return_refund_process — danh mục hạn chế | 0.304 | Có (gold ở top-2) | Không chứa thời gian cụ thể |
+| 4 | Chính sách bảo hành điện tử? | shopee_return_refund_guide_buyer — hướng dẫn trả hàng | 0.317 | Có (gold ở top-2) | Không trả lời được đúng gold |
+| 5 | Phí vận chuyển hàng trả lỗi người bán? | shopee_seller_return_refund_process — danh mục điện tử | 0.219 | Không (gold absent) | Không tìm thấy thông tin phí vận chuyển |
+
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 3 / 5
+
+> **Nhận xét:** Với MockEmbedder, điểm bị chi phối bởi hash MD5 không phản ánh ngữ nghĩa. Kết quả đáng chú ý: metadata filter `audience` có ích rõ ở Q4 (filter tăng từ 0 lên 1 điểm bằng cách loại bỏ các tài liệu seller khỏi search space). Với embedder thật, dự kiến 4–5/5 câu có gold ở top-3.
 
 **Điều hay nhất tôi học được từ thành viên khác / nhóm khác (qua demo):**
 > *Viết 2-3 câu:*
