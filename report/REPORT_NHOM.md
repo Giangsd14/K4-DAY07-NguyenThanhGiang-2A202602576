@@ -59,9 +59,15 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 
 | Tài liệu | Chiến lược (Strategy) | Số lượng Chunk | Độ dài trung bình | Giữ được ngữ cảnh không? |
 |-----------|----------|-------------|------------|-------------------|
-| | FixedSizeChunker (`fixed_size`) | | | |
-| | SentenceChunker (`by_sentences`) | | | |
-| | RecursiveChunker (`recursive`) | | | |
+| shopee_return_shipping_fee_policy (~6,5k ký tự) | FixedSizeChunker | 11 | 473.9 | Không — cắt giữa câu |
+| shopee_return_shipping_fee_policy | SentenceChunker | 10 | 468.8 | Khá — giữ câu nguyên vẹn |
+| shopee_return_shipping_fee_policy | RecursiveChunker | 13 | 360.8 | Tốt — tôn trọng cấu trúc |
+| shopee_seller_return_refund_process (~8,5k ký tự) | FixedSizeChunker | 14 | 490.0 | Không — cắt giữa điều khoản |
+| shopee_seller_return_refund_process | SentenceChunker | 20 | 308.6 | Trung bình — chunk quá nhỏ |
+| shopee_seller_return_refund_process | RecursiveChunker | 16 | 386.3 | Tốt — tôn trọng mục/bước |
+| shopee_warranty_policy (~5,8k ký tự) | FixedSizeChunker | 10 | 475.2 | Không — cắt giữa điều khoản |
+| shopee_warranty_policy | SentenceChunker | 9 | 475.9 | Khá — phù hợp văn bản ngắn |
+| shopee_warranty_policy | RecursiveChunker | 12 | 356.9 | Tốt — giữ được nghiā mục |
 
 ### Chiến lược của từng thành viên
 
@@ -80,10 +86,14 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 - **Mô tả & lý do chọn:**
 - **Code snippet (nếu custom):**
 
-**Thành viên 3 — [Tên]**
-- **Loại chiến lược:**
-- **Mô tả & lý do chọn:**
-- **Code snippet (nếu custom):**
+**Thành viên 3 — Nguyễn Thanh Giang**
+- **Loại chiến lược:** Recursive
+- **Mô tả & lý do chọn:** `RecursiveChunker` tách văn bản theo danh sách separator ưu tiên (`\n\n` → `\n` → ` ` → `""`) — phù hợp với tài liệu chính sách Shopee vốn được phân tầng theo đoạn và điều khoản. So với FixedSize (cắt giữa câu), Recursive tôn trọng ranh giới ngữ nghĩa hơn, giúp retrieval nắm bắt được toàn bộ điều kiện trong một chunk.
+- **Code snippet:**
+```python
+from src.chunking import RecursiveChunker
+CHUNKER = RecursiveChunker(chunk_size=500)
+```
 
 ### So Sánh Giữa Các Thành Viên
 
