@@ -14,31 +14,38 @@
 
 ### Chủ đề (Domain) & Lý Do Chọn
 
-**Chủ đề:** [ví dụ: Customer support FAQ, Luật Việt Nam, công thức nấu ăn, ...]
+**Chủ đề:** Chính sách Đổi trả, Bảo hành & Thanh toán trên Shopee (thương mại điện tử)
 
 **Tại sao nhóm chọn chủ đề này?**
-> *Viết 2-3 câu:*
+> Chính sách đổi trả/bảo hành là loại tài liệu có cấu trúc rõ ràng (có điều khoản, mục, danh sách), đồng thời có sự phân tách tự nhiên giữa 2 nhóm người dùng (buyer/seller) — rất phù hợp để kiểm thử metadata filter. Ngoài ra, nội dung công khai, dễ thu thập, và câu hỏi thực tế của người dùng Shopee rất cụ thể nên dễ đánh giá chất lượng retrieval.
 
 ### Danh sách tài liệu (Data Inventory)
 
 | # | Tên tài liệu | Nguồn (Source URL) | Ngày lấy / Phiên bản | Số ký tự | Metadata đã gán |
 |---|--------------|------------|--------------------|----------|-----------------|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+| 1 | shopee_faq_return_refund_seller | https://banhang.shopee.vn/edu/article/faq-return-refund | 2026-09-20 / 20-08-2026 | ~20 659 | audience=seller, category=return_refund_faq |
+| 2 | shopee_payment_policy_seller | https://banhang.shopee.vn/edu/article/234 | 2026-09-20 / 18-05-2026 | ~8 409 | audience=seller, category=payment |
+| 3 | shopee_return_refund_guide_buyer | https://shopee.vn/blog/cach-tra-hang-hoan-tien-tren-shopee/ | 2026-09-20 / 15-09-2026 | ~15 773 | audience=buyer, category=return_refund_guide |
+| 4 | shopee_return_shipping_fee_policy | https://banhang.shopee.vn/edu/article/3648 | 2026-09-20 / 16-09-2025 | ~6 458 | audience=seller, category=return_refund |
+| 5 | shopee_seller_return_refund_process | https://banhang.shopee.vn/edu/article/563 | 2026-09-20 / 2026-08-27 | ~8 523 | audience=seller, category=return_refund |
+| 6 | shopee_warranty_policy | https://help.shopee.vn/portal/4/article/79046 | 2026-09-20 / N/A | ~5 839 | audience=buyer, category=warranty |
 
 **Danh sách kiểm tra quản trị dữ liệu (Data governance checklist):**
-- [ ] Tập tài liệu (Corpus) chỉ chứa nguồn công khai/được phép dùng và không chứa dữ liệu cá nhân, thông tin đăng nhập hoặc tài liệu nội bộ.
-- [ ] Mỗi tài liệu có `source_url`, `retrieved_at`, `document_version` (hoặc ngày hiệu lực) trong metadata.
+- [x] Tập tài liệu (Corpus) chỉ chứa nguồn công khai/được phép dùng và không chứa dữ liệu cá nhân, thông tin đăng nhập hoặc tài liệu nội bộ.
+- [x] Mỗi tài liệu có `source_url`, `retrieved_at`, `document_version` (hoặc ngày hiệu lực) trong metadata.
 
 ### Cấu trúc Metadata (Metadata Schema)
 
 | Trường metadata | Kiểu | Ví dụ giá trị | Tại sao hữu ích cho truy xuất (retrieval)? |
 |----------------|------|---------------|-------------------------------|
-| | | | |
-| | | | |
+| `doc_id` | string | `shopee_warranty_policy` | Định danh duy nhất — dùng để xóa hoặc cập nhật document trong store |
+| `title` | string | `Chính sách bảo hành...` | Hiển thị cho người dùng cuối, giúp trace kết quả về nguồn |
+| `source_url` | string | `https://banhang.shopee.vn/...` | Truy vết nguồn gốc câu trả lời, đảm bảo tính minh bạch |
+| `retrieved_at` | string (ISO date) | `2026-09-20` | Kiểm tra độ mới của thông tin (chính sách thay đổi thường xuyên) |
+| `document_version` | string | `20-08-2026` | Xác định phiên bản chính sách đang áp dụng |
+| `audience` | string enum | `buyer` / `seller` / `both` | **Filter chính** — tránh trả kết quả buyer cho câu hỏi seller và ngược lại |
+| `category` | string | `return_refund`, `warranty`, `payment` | Lọc theo chủ đề cụ thể, thu hẹp không gian tìm kiếm |
+| `language` | string | `vi` | Hỗ trợ mở rộng đa ngôn ngữ trong tương lai |
 
 ---
 
@@ -99,11 +106,11 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 
 | # | Câu hỏi (Query) | Câu trả lời chuẩn (Gold Answer) | Chunk nào chứa thông tin? |
 |---|-------|-------------------------------|--------------------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | Người mua cần thực hiện những bước nào trên ứng dụng Shopee để gửi yêu cầu Trả hàng/Hoàn tiền? | Truy cập Đơn mua -> Chọn đơn hàng -> Nhấn Trả hàng/Hoàn tiền -> Chọn lý do, tải lên bằng chứng và Xác nhận. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
+| 2 | Khi Shopee yêu cầu bổ sung bằng chứng cho yêu cầu Trả hàng/Hoàn tiền, Người mua có bao nhiêu thời gian để phản hồi? | Thông thường là 24h hoặc theo thời gian đếm ngược hiển thị trên ứng dụng. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
+| 3 | Những nhóm sản phẩm nào thuộc danh mục hạn chế không được trả hàng hoặc không áp dụng lý do "Đổi ý/không còn nhu cầu"? | Thiết bị Điện tử & Công nghệ, Sức khỏe/Vệ sinh/Đồ cá nhân, Thực phẩm & Hàng mau hỏng, Hàng đặc thù trong vận chuyển, Sản phẩm số và dịch vụ. | `shopee_seller_return_refund_process.md` (Mục: Danh mục sản phẩm hạn chế) |
+| 4 | Shopee Xu và Mã giảm giá (Voucher) đã sử dụng sẽ được hoàn lại như thế nào khi yêu cầu Trả hàng/Hoàn tiền thành công? | Tự động hoàn lại vào tài khoản Người mua sau khi yêu cầu THHT được chấp nhận, với điều kiện mã còn hạn sử dụng. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
+| 5 | Người bán vi phạm quy định đăng bán sản phẩm trên Shopee (như bán hàng cấm, hàng giả, gian lận) sẽ bị xử lý bằng những hình thức nào? (Cần lọc: audience: seller) | Khóa sản phẩm, trừ Sao Quả Tạ, giới hạn quyền bán hàng, hoặc khóa tài khoản vĩnh viễn tùy mức độ. *(Cần bổ sung tài liệu chứa thông tin này)* | *(Chưa có trong dữ liệu hiện tại)* |
 
 ### Tổng hợp chất lượng truy xuất của nhóm
 
